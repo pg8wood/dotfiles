@@ -1,0 +1,38 @@
+# Compiled 
+*.class
+*.exe
+*.o
+*.so
+
+# Compressed files
+*.7z
+*.dmg
+*.gz
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs
+*.log*
+
+# JetBrains
+.idea/
+out/
+*.iml
+
+# Apple why
+.DS_Store*
+
+# Python
+*.pyo
+*.pyc
+
+# Node
+node_modules
+
+# Backup files
+*.bak
+
+# Swap files
+*.sw[a-p] 

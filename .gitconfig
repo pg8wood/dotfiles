@@ -1,0 +1,6 @@
+[user]
+	name = Patrick Gatewood
+	email = pg8wood@vt.edu
+
+[core]
+	excludesfile = /Users/PatrickGatewood/.gitignore_global
