@@ -8,12 +8,6 @@ source ~/dotfiles/.aliasrc
 # Path to your oh-my-zsh installation.
 export ZSH="/Users/patrickgatewood/.oh-my-zsh"
 
-# Set name of the theme to load --- if set to "random", it will
-# load a random theme each time oh-my-zsh is loaded, in which case,
-# to know which specific one was loaded, run: echo $RANDOM_THEME
-# See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="maran"
-
 # Set list of themes to pick from when loading at random
 # Setting this variable when ZSH_THEME=random will cause zsh to load
 # a theme from this variable instead of looking in ~/.oh-my-zsh/themes/
@@ -68,9 +62,22 @@ ZSH_THEME="maran"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
   git
+  zsh-syntax-highlighting
 )
 
 source $ZSH/oh-my-zsh.sh
+
+# Set name of the theme to load --- if set to "random", it will
+# load a random theme each time oh-my-zsh is loaded, in which case,
+# to know which specific one was loaded, run: echo $RANDOM_THEME
+# See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
+
+# empty string is for pure prompt: https://github.com/sindresorhus/pure#install
+ZSH_THEME=""
+
+# Pure Prompt setup
+autoload -U promptinit; promptinit
+prompt pure
 
 # User configuration
 
