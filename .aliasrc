@@ -9,8 +9,8 @@ alias grep='grep --color'
 alias l='ls'
 alias ll='ls -l'
 alias lol='fortune -o | cowsay'
-#alias ls='ls -Gh' 				# OSX ls
-alias ls='gls --color=auto'		# GNU ls
+alias ls='ls -Gh' 				# OSX ls
+#alias ls='gls --color=auto'	# GNU ls
 alias mv='mv -i'
 alias notes='cd ~/Documents/notes'
 alias rlogin='ssh pg8wood@rlogin.cs.vt.edu'
