@@ -22,6 +22,10 @@ ZSH_THEME="" # empty theme is required for pure prompt: https://github.com/sindr
 autoload -U promptinit; promptinit
 prompt pure
 
+# Thank god for vim
+bindkey -v
+export KEYTIMEOUT=1 
+
 # Google Cloud SDK
 if [ -f '/Users/patrickgatewood/Documents/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/patrickgatewood/Documents/google-cloud-sdk/path.zsh.inc'; fi
 if [ -f '/Users/patrickgatewood/Documents/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/patrickgatewood/Documents/google-cloud-sdk/completion.zsh.inc'; fi
