@@ -5,6 +5,9 @@ export PATH=/Users/patrickgatewood/Documents/discord-voice-assistant-bot/python-
 # Fastlane
 export PATH="$HOME/.fastlane/bin:$PATH"
 
+# Android stuff
+export ANDROID_HOME="$HOME/Library/Android/sdk"
+
 # oh-my-zsh 
 export ZSH="/Users/patrickgatewood/.oh-my-zsh"
 
