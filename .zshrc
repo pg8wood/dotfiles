@@ -2,6 +2,9 @@
 source ~/dotfiles/.aliasrc
 export PATH=/Users/patrickgatewood/Documents/discord-voice-assistant-bot/python-3.6-env/lib/python3.6/site-packages/ffmpeg:$PATH
 
+# Fastlane
+export PATH="$HOME/.fastlane/bin:$PATH"
+
 # oh-my-zsh 
 export ZSH="/Users/patrickgatewood/.oh-my-zsh"
 
