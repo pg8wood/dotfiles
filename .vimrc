@@ -16,6 +16,7 @@ set tabstop=4
 set smarttab
 set expandtab
 set autoindent
+filetype indent plugin on
 
 " ------
 " Colors
@@ -28,3 +29,6 @@ if &diff
     colorscheme elflord
 endif
 
+" Make Xcode project file merge conflicts actually readable
+au BufRead,BufNewFile *.pbxproj set filetype=pbxproj
+autocmd Filetype pbxproj setlocal nowrap  

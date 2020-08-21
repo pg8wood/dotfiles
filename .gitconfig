@@ -1,6 +1,7 @@
 [user]
 	name = Patrick Gatewood
 	email = pg8wood@vt.edu
+	signingkey = 5C7E51FE5CB8D85C
 
 [core]
 	excludesfile = /Users/PatrickGatewood/.gitignore_global
@@ -13,9 +14,11 @@
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
 [mergetool "sourcetree"]
-	cmd = /Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
+	cmd = /Users/patrickgatewood/Applications/Sourcetree.app/Contents/Resources/opendiff-w.sh \"$LOCAL\" \"$REMOTE\" -ancestor \"$BASE\" -merge \"$MERGED\"
 	trustExitCode = true
 [rerere]
 	enabled = true
 [push]
 	default = current
+[commit]
+	gpgsign = true

@@ -45,3 +45,6 @@ sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate off
 sudo /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
 }
 export PATH="/usr/local/opt/ruby/bin:$PATH"
+
+# .NET hates ZSH
+export PATH=$HOME/.dotnet/tools:$PATH
