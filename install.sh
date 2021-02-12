@@ -38,14 +38,14 @@ function install_brew {
 
 function linkdotfile {
   file="$1"
-  if [ ! -L ~/$file ]; then 
+  if [ -e ~/$file ]; then 
     yecho "$file found, but it's not ours. Moving it to /tmp"
     mv ~/$1 /tmp
   fi
 
   if [ ! -e ~/$file -a ! -L ~/$file ]; then
       yecho "linking $file... " >&2
-      ln -s ~/dotfiles/$file ~/$file
+      ln -s ${PWD}/$file ~/$file
   else
       gecho "ignoring $file because it's already linked" >&2
   fi
@@ -54,6 +54,7 @@ function linkdotfile {
 
 # Installation actions
 install_brew npm
+sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 npm install --global pure-prompt
 
 linkdotfile .aliasrc
