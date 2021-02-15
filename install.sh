@@ -54,13 +54,12 @@ function linkdotfile {
 
 # Installation actions
 install_brew npm
-sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+#sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 npm install --global pure-prompt
 
 linkdotfile .aliasrc
 linkdotfile .bashrc
 linkdotfile .dir_colors
-linkdotfile .git
 linkdotfile .gitconfig
 linkdotfile .gitignore_global
 linkdotfile .vimrc
