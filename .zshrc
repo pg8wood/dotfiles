@@ -14,7 +14,8 @@ export ZSH="/Users/patrickgatewood/.oh-my-zsh"
 # zsh config
 HYPHEN_INSENSITIVE="true"
 export UPDATE_ZSH_DAYS=13
-ENABLE_CORRECTION="true"
+ENABLE_CORRECTION="false"
+setopt nocorrectall
 
 plugins=(
   git
