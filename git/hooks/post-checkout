@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+# Thanks to https://gist.github.com/danielcarr/337b5cf0ddb6c1931c5a
+
+from_branch=$1
+checked_out_branch=$2
+flag=$3
+
+# Spice up that output
+message_color='\033[0;34m' # blue
+bold_white='\033[1;37m'
+style_terminator='\033[0m'
+
+# If checking out a fresh clone
+if [ $from_branch = 0000000000000000000000000000000000000000 ]; then
+  from_branch=$(git hash-object -t tree /dev/null) # a hash representing an empty tree/repo
+fi
+
+# If Podfile exists and `pod install` does something
+if [ -f Podfile ] && command -v pod install >/dev/null &&
+  # And the Podfile has changed
+  ! git diff $from_branch $checked_out_branch --quiet -- Podfile
+then
+  printf "\n${message_color}🍫 Detected a CocoaPods change. Running ${bold_white}pod install${style_terminator}...\n\n"
+  export COCOAPODS_DISABLE_STATS=1 # Prevent sending stats, which slows down checkout unbearably
+  export LANG=en_US.UTF-8 # Cocoapods complain without this
+  unset -v GIT_DIR # In case git thinks it's somewhere else
+  pod install
+fi
