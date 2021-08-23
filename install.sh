@@ -64,3 +64,7 @@ linkdotfile .gitconfig
 linkdotfile .gitignore_global
 linkdotfile .vimrc
 linkdotfile .zshrc
+
+# Gotta do git manually since this repo has its own .git directory
+mkdir ~/.git
+ln -s git/hooks ~/.git

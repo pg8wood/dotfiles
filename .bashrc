@@ -14,7 +14,7 @@ source ~/dotfiles/.aliasrc
 # * Custom interactive prompt  *
 # * result: user@host:[PWD##*/]*
 # ******************************
-export PS1="\[$(tput setaf 7)\]$USER@\h:[\[$(tput setaf 10)\]\W\[$(tput setaf 7)\]] $\[$(tput sgr0)\] " 
+#export PS1="\[$(tput setaf 7)\]$USER@\h:[\[$(tput setaf 10)\]\W\[$(tput setaf 7)\]] $\[$(tput sgr0)\] " 
 
 
 # *************************

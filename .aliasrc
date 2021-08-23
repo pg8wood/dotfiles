@@ -13,9 +13,8 @@ alias ls='ls -Gh' 				# OSX ls
 #alias ls='gls --color=auto'	# GNU ls
 alias mv='mv -i'
 alias notes='cd ~/Documents/notes'
-alias rlogin='ssh pg8wood@rlogin.cs.vt.edu'
+alias playground='open ~/Documents/MyPlayground.playground'
 alias rm='rm -i'
 alias s='ls'
 alias scd='cd' # because I suck at typing 
-alias scripts='cd ${GOOGLE_DRIVE}/scripts'
-
+alias scripts='cd ~/Documents/scripts'

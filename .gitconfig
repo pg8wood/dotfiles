@@ -1,7 +1,7 @@
 [user]
 	name = Patrick Gatewood
 	email = pg8wood@vt.edu
-	signingkey = 5C7E51FE5CB8D85C
+	signingkey = 5BCBA46BE9D96C27
 
 [core]
 	excludesfile = /Users/PatrickGatewood/.gitignore_global
@@ -23,3 +23,5 @@
 	default = current
 [commit]
 	gpgsign = true
+[credential]
+	helper = osxkeychain

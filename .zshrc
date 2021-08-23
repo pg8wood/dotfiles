@@ -49,3 +49,6 @@ export PATH="/usr/local/opt/ruby/bin:$PATH"
 
 # .NET hates ZSH
 export PATH=$HOME/.dotnet/tools:$PATH
+
+# Custom scripts
+export PATH="~/Documents/scripts:$PATH"

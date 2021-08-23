@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# Thanks to https://gist.github.com/danielcarr/337b5cf0ddb6c1931c5a
+# Thanks to https://gist.github.com/danielcarr/337b5cf0ddb6c1931c5a for some of the internals
+
+source ~/dotfiles/scripts/ask.sh
 
 from_branch=$1
 checked_out_branch=$2
@@ -15,14 +17,15 @@ if [ $from_branch = 0000000000000000000000000000000000000000 ]; then
   from_branch=$(git hash-object -t tree /dev/null) # a hash representing an empty tree/repo
 fi
 
-# If Podfile exists and `pod install` does something
-if [ -f Podfile ] && command -v pod install >/dev/null &&
-  # And the Podfile has changed
-  ! git diff $from_branch $checked_out_branch --quiet -- Podfile
+# If Podfile.lock exists and `pod install` does something
+if [ -f Podfile.lock ] && 
+  command -v pod install >/dev/null &&
+  ! git diff $from_branch $checked_out_branch --quiet -- Podfile &&
+  ask "\n${message_color}🍫 Detected a CocoaPods change. Run ${bold_white}pod install${style_terminator}${message_color}?${style_terminator}" N
 then
-  printf "\n${message_color}🍫 Detected a CocoaPods change. Running ${bold_white}pod install${style_terminator}...\n\n"
+  printf "Running ${bold_white}pod install${style_terminator}...\n\n"
   export COCOAPODS_DISABLE_STATS=1 # Prevent sending stats, which slows down checkout unbearably
   export LANG=en_US.UTF-8 # Cocoapods complain without this
   unset -v GIT_DIR # In case git thinks it's somewhere else
-  pod install
+  pod install 
 fi

@@ -1,13 +1,12 @@
 " 
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " ~ Patrick's custom vimrc ~
-" ~ AKA Things that should ~
-"  ~ be on by default :P  ~
+" ~     The good stuff     ~
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 colorscheme elflord
 
-" You know it's gonna happen 
+" I can't freaking type
 command W w
 command Q q
 
@@ -16,6 +15,7 @@ set tabstop=4
 set smarttab
 set expandtab
 set autoindent
+set number
 filetype indent plugin on
 
 " ------
