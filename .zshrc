@@ -1,5 +1,5 @@
 # Aliases
-source ~/dotfiles/.aliasrc
+source ~/.aliasrc
 export PATH=/Users/patrickgatewood/Documents/discord-voice-assistant-bot/python-3.6-env/lib/python3.6/site-packages/ffmpeg:$PATH
 
 # Fastlane
@@ -25,6 +25,7 @@ plugins=(
 source $ZSH/oh-my-zsh.sh
 
 # Pure Prompt setup
+fpath+=$HOME/.zsh/pure # Apple Silicon workaround
 ZSH_THEME="" # empty theme is required for pure prompt: https://github.com/sindresorhus/pure#install
 autoload -U promptinit; promptinit
 prompt pure

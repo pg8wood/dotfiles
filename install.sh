@@ -1,4 +1,5 @@
 # Inspired by this awesome setup script: https://github.com/vsbuffalo/dotfiles/blob/master/setup.sh 
+source ./scripts/ask.sh
 
 RCol='\033[0m'
 Gre='\033[0;32m'
@@ -20,7 +21,6 @@ function wecho {
   # red, but don't exit 1
   echo "${Red}[error] $1${RCol}"
 }
-
 
 function recho {
   echo "${Red}[error] $1${RCol}"
@@ -68,3 +68,20 @@ linkdotfile .zshrc
 # Gotta do git manually since this repo has its own .git directory
 mkdir ~/.git
 ln -s git/hooks ~/.git
+
+# Oh My Zsh installation
+ohMyZshUrl="https://github.com/ohmyzsh/ohmyzsh#basic-installation"
+if ask "Would you like to view the Oh My Zsh install script before continuing?" N ; then
+   echo $ohMyZshUrl
+   read -p "Press enter to continue"
+fi
+
+if ask "Install Oh My Zsh?" Y ; then 
+    sh -c "$(curl -fsSL $ohMyZshUrl)"
+fi
+
+echo "Installing zsh-syntax-highlighting"
+git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+
+echo "Installing Pure Prompt"
+git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
