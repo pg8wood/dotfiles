@@ -1,4 +1,8 @@
 #!/bin/bash
 killall Xcode
 rm -rf ~/Library/Developer/Xcode/DerivedData
-open /Applications/Xcode.app
+
+xcodePath=$(xcode-select -p)
+developerDirectoryPathComponent="/Contents/Developer"
+xcodePath=${xcodePath%"$developerDirectoryPathComponent"} # https://stackoverflow.com/a/16623897
+open $xcodePath
