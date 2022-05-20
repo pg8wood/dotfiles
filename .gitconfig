@@ -5,7 +5,7 @@
 
 [core]
 	excludesfile = /Users/PatrickGatewood/.gitignore_global
-    hooksPath = ~/.git/hooks
+        hooksPath = ~/.git/hooks
 [filter "lfs"]
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
@@ -25,3 +25,7 @@
 	gpgsign = true
 [credential]
 	helper = osxkeychain
+[init]
+	defaultBranch = main
+[gpg]
+	program = /usr/local/bin/gpg

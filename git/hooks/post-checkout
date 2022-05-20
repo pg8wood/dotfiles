@@ -3,6 +3,8 @@
 
 source ~/dotfiles/scripts/ask.sh
 
+# echo "post checkout script"
+
 from_branch=$1
 checked_out_branch=$2
 flag=$3

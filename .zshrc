@@ -1,6 +1,6 @@
 # Aliases
 source ~/.aliasrc
-export PATH=/Users/patrickgatewood/Documents/discord-voice-assistant-bot/python-3.6-env/lib/python3.6/site-packages/ffmpeg:$PATH
+export PATH="$HOME/dotfiles/scripts:$PATH"
 
 # Fastlane
 export PATH="$HOME/.fastlane/bin:$PATH"
