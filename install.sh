@@ -70,9 +70,9 @@ mkdir ~/.git
 ln -s git/hooks ~/.git
 
 # Oh My Zsh installation
-ohMyZshUrl="https://github.com/ohmyzsh/ohmyzsh#basic-installation"
-if ask "Would you like to view the Oh My Zsh install script before continuing?" N ; then
-   echo $ohMyZshUrl
+ohMyZshUrl="https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh"
+if ask "Would you like to read the Oh My Zsh install script before continuing? You really should!" Y ; then
+   open $ohMyZshUrl
    read -p "Press enter to continue"
 fi
 
@@ -81,7 +81,7 @@ if ask "Install Oh My Zsh?" Y ; then
 fi
 
 echo "Installing zsh-syntax-highlighting"
-git clone https://github.com/zsh-users/zsh-syntax-highlighting.git "${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting"
+brew install zsh-syntax-highlighting
 
 echo "Installing Pure Prompt"
 git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"

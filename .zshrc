@@ -1,6 +1,6 @@
 # Aliases
 source ~/.aliasrc
-export PATH="$HOME/dotfiles/scripts:$PATH"
+export PATH="$HOME/Developer/dotfiles/scripts:$PATH"
 
 # Fastlane
 export PATH="$HOME/.fastlane/bin:$PATH"
@@ -19,7 +19,6 @@ setopt nocorrectall
 
 plugins=(
   git
-  zsh-syntax-highlighting
 )
 
 source $ZSH/oh-my-zsh.sh
@@ -51,5 +50,7 @@ export PATH="/usr/local/opt/ruby/bin:$PATH"
 # .NET hates ZSH
 export PATH=$HOME/.dotnet/tools:$PATH
 
-# Custom scripts
-export PATH="~/Documents/scripts:$PATH"
+# VS Code
+export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
+
+source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

@@ -1,11 +1,10 @@
 [user]
 	name = Patrick Gatewood
 	email = pg8wood@vt.edu
-	signingkey = 5BCBA46BE9D96C27
+	signingkey = 478298072107B03B
 
 [core]
 	excludesfile = /Users/PatrickGatewood/.gitignore_global
-        hooksPath = ~/.git/hooks
 [filter "lfs"]
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
@@ -28,4 +27,4 @@
 [init]
 	defaultBranch = main
 [gpg]
-	program = /usr/local/bin/gpg
+	program = gpg

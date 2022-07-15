@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Note that any command prefixed with 'g' is from the GNU coreutils
+alias bootstrap='Scripts/bootstrap.sh'
 alias c='clear'
 alias cp='cp -i'
 alias docs='cd ~/Documents'
