@@ -1,3 +1,6 @@
+# Homebrew path fix for Apple Silicon
+eval $(/opt/homebrew/bin/brew shellenv)
+
 # Aliases
 source ~/.aliasrc
 export PATH="$HOME/Developer/dotfiles/scripts:$PATH"

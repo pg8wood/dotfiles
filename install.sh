@@ -35,7 +35,6 @@ function install_brew {
     (yecho "$1 not found, installing via homebrew..." && brew install $1)
 }
 
-
 function linkdotfile {
   file="$1"
   if [ -e ~/$file ]; then 
@@ -53,8 +52,13 @@ function linkdotfile {
 
 
 # Installation actions
+if ! command -v brew &> /dev/null
+then
+    wecho "brew is not installed. Installing now..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+fi
+
 install_brew npm
-#sh -c "$(curl -fsSL https://raw.github.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
 npm install --global pure-prompt
 
 linkdotfile .aliasrc
