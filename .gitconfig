@@ -1,7 +1,7 @@
 [user]
 	name = Patrick Gatewood
-	email = pg8wood@vt.edu
 	signingkey = 478298072107B03B
+        email = patrick@patrickgatewood.com
 
 [core]
 	excludesfile = /Users/PatrickGatewood/.gitignore_global
