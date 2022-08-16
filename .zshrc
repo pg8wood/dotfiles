@@ -24,8 +24,6 @@ plugins=(
   git
 )
 
-source $ZSH/oh-my-zsh.sh
-
 # Pure Prompt setup
 fpath+=$HOME/.zsh/pure # Apple Silicon workaround
 ZSH_THEME="" # empty theme is required for pure prompt: https://github.com/sindresorhus/pure#install
@@ -36,9 +34,9 @@ prompt pure
 bindkey -v
 export KEYTIMEOUT=1 
 
-# Google Cloud SDK
-if [ -f '/Users/patrickgatewood/Documents/google-cloud-sdk/path.zsh.inc' ]; then . '/Users/patrickgatewood/Documents/google-cloud-sdk/path.zsh.inc'; fi
-if [ -f '/Users/patrickgatewood/Documents/google-cloud-sdk/completion.zsh.inc' ]; then . '/Users/patrickgatewood/Documents/google-cloud-sdk/completion.zsh.inc'; fi
+# GPG Commit Signing
+if [ -r ~/.zshrc ]; then echo 'export GPG_TTY=$(tty)' >> ~/.zshrc; \
+  else echo 'export GPG_TTY=$(tty)' >> ~/.zprofile; fi
 
 # Get rid of Xamarin UI Tests incoming connection alerts
 simfirewall() {
@@ -57,3 +55,5 @@ export PATH=$HOME/.dotnet/tools:$PATH
 export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+export GPG_TTY=$(tty)
+export GPG_TTY=$(tty)
