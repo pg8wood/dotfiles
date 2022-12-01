@@ -1,0 +1,16 @@
+#!/bin/bash
+# Checks out a new branch off the current branch and appends 
+# the specified part number.
+#
+# Helpful for breaking up tickets into sequential PRs
+# 
+# e.g. git part 2 => my-branch-part-2
+
+part_number=$1
+
+if [ -z "$1" ]; then 
+    echo "Supply a number for the branch, such as '2' to create '$(git rev-parse --abbrev-ref HEAD)-part-2'"
+    exit 1
+fi
+
+git checkout -b "$(git rev-parse --abbrev-ref HEAD)-part-$part_number"
