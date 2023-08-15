@@ -1,0 +1,28 @@
+#!/bin/bash 
+#
+# Usage: Search for BUILD.bazel files
+# If a file is passed, the script will search for that file's parent BUILD.bazel file
+
+# Replace with the command to open your favorite editor
+editor_command="code"
+
+# exit when any command fails
+set -e
+
+function upsearch() {
+    test / == "$PWD" && return || test -f "$1" && echo "$(realpath $1)" && return || cd .. && upsearch "$1"
+}
+
+if [ ! -z "$1" ]; then
+    cd $(dirname $1)
+fi
+
+path=$(upsearch "BUILD.bazel")
+
+if [ -z "$path" ]; then 
+    echo "BUILD.bazel was not found!"
+else
+    echo "Found bazel file: $path"
+    $editor_command $path
+fi
+
