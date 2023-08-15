@@ -3,9 +3,10 @@
 # Note that any command prefixed with 'g' is from the GNU coreutils
 alias bootstrap='Scripts/bootstrap.sh'
 alias c='clear'
-alias cp='cp -i'
+#alias cp='cp -i'
 alias docs='cd ~/Documents'
 alias drive='cd $GOOGLE_DRIVE'
+alias gut='git'
 alias grep='grep --color'
 alias l='ls'
 alias ll='ls -l'
@@ -14,8 +15,10 @@ alias ls='ls -Gh' 				# OSX ls
 #alias ls='gls --color=auto'	# GNU ls
 alias mv='mv -i'
 alias notes='cd ~/Documents/notes'
-alias playground='open ~/Documents/MyPlayground.playground'
 alias rm='rm -i'
 alias s='ls'
 alias scd='cd' # because I suck at typing 
-alias scripts='cd ~/Documents/scripts'
+alias scripts='cd ~/Developer/dotfiles/scripts/'
+
+# Square stuff 
+alias compost='~/Developer/topsoil/compost'

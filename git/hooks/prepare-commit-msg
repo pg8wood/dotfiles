@@ -24,6 +24,8 @@
 # - Make sure the saved script is executable
 # - The script should not have an extension
 
+echo "preapring commit message"
+
 BRANCH_NAME=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 TICKET_PATTERN='([A-Z]{2,6}-[0-9]{1,4})+'
 

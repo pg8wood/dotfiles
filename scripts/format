@@ -1,0 +1,4 @@
+#!/bin/bash
+
+git status --short "*.[m|h|mm]" | cut -c4- | xargs -I % sh -c "echo '%' && Pods/SpaceCommander/format-objc-file.sh '%'"
+git status --short "*.swift"| cut -c4- | xargs -I % -S 2000 sh -c "echo '%' && Pods/SwiftFormat/CommandLineTool/swiftformat '%'"

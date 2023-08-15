@@ -1,9 +1,21 @@
 #!/bin/bash
-killall Xcode
-rm -rf ~/Library/Developer/Xcode/DerivedData
+if ! command -v trash; then 
+    echo "Installing 'trash' as it is faster and safer than 'rm -rf'."
+    brew install trash
+fi
+
+killall Xcode > /dev/null 2>&1
+
+derivedDataPath=~/Library/Developer/Xcode/DerivedData
+if [ -d $derivedDataPath ]; then 
+    trash $derivedDataPath
+    echo "DerivedData was moved to the Trash."
+else
+    echo "DerivedData is already empty."
+fi
 
 xcodePath=$(xcode-select -p)
 developerDirectoryPathComponent="/Contents/Developer"
 xcodePath=${xcodePath%"$developerDirectoryPathComponent"} # https://stackoverflow.com/a/16623897
 
-xed . || open $xcodePath
+open $xcodePath

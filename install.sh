@@ -89,3 +89,11 @@ brew install zsh-syntax-highlighting
 
 echo "Installing Pure Prompt"
 git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
+
+# Install Playground
+cd ./third-party
+git clone https://github.com/JohnSundell/Playground.git
+cd Playground
+swift build -c release
+install .build/release/Playground /usr/local/bin/playground
+cd ../..

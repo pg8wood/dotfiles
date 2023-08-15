@@ -57,3 +57,16 @@ export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/b
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 export GPG_TTY=$(tty)
 export GPG_TTY=$(tty)
+
+
+# Linter shenanigans
+linter() {
+  if [ "$1" == "on" ]; then 
+      export LINTER_ENABLED=1
+  elif [ "$1" == "off" ]; then 
+      export LINTER_ENABLED=0
+  else
+      echo "Try again with 'on' or 'off'"
+  fi
+}
+
