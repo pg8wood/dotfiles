@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Kills Xcode and re-opens it to the project selection screen
+killall Xcode
+
+# "killall" might not be done when this runs. If "open" fails, try again after 10ms
+while ! open -a $(xcode-select -p)/../.. --args -ApplePersistenceIgnoreState YES
+do
+    sleep 0.01
+done
