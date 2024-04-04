@@ -30,9 +30,18 @@ ZSH_THEME="" # empty theme is required for pure prompt: https://github.com/sindr
 autoload -U promptinit; promptinit
 prompt pure
 
-# Thank god for vim
+# Terminal vim mode
+# -----------------
 bindkey -v
 export KEYTIMEOUT=1 
+
+# Make TAB cycle between autocompletion suggestions. This MUST be after either the Pure Prompt setup or the 
+# vim mode binding otherwise it doesn't work
+bindkey '\t' menu-complete "$terminfo[kcbt]" reverse-menu-complete
+
+# History search is more useful than "redisplay" (vim redo)
+bindkey "^R" history-incremental-search-backward
+# -----------------
 
 # GPG Commit Signing
 if [ -r ~/.zshrc ]; then echo 'export GPG_TTY=$(tty)' >> ~/.zshrc; \
