@@ -25,6 +25,10 @@ class String
   def red
     colorize(31)
   end
+  
+  def gray
+    colorize(90)
+  end
 end
 
 def print_step(message)
@@ -40,6 +44,13 @@ def print_error(message, details = nil)
   exit 1
 end
 
+def print_verbose(message)
+  return unless $verbose
+  puts "\n#{"=".gray * 80}"
+  puts message.gray
+  puts "#{"=".gray * 80}\n"
+end
+
 # Truncate text to N words
 def truncate_words(text, word_count)
   return "" if text.nil? || text.empty?
@@ -53,6 +64,8 @@ end
 
 # Extract branch name from goose output
 def extract_branch_name_from_output(output)
+  print_verbose "Goose output:\n#{output}"
+  
   # Look for "branch_name: <name>" pattern
   if match = output.match(/branch_name:\s*([a-z0-9-]+)/)
     match[1]
@@ -65,10 +78,15 @@ end
 require 'optparse'
 
 options = { dry_run: false }
+$verbose = false
+
 parser = OptionParser.new do |opts|
   opts.banner = "Usage: ticket [options] <ticket-id> [module1 module2 ...]"
   opts.on("-d", "--dry-run", "Generate branch name without executing commands") do
     options[:dry_run] = true
+  end
+  opts.on("-v", "--verbose", "Show verbose output including prompts") do
+    $verbose = true
   end
 end
 
@@ -105,6 +123,11 @@ query = {
         description
         identifier
         url
+        labels {
+          nodes {
+            name
+          }
+        }
         team {
           name
           key
@@ -149,6 +172,8 @@ description = ticket_data['data']['issue']['description'] || ''
 url = ticket_data['data']['issue']['url']
 team_name = ticket_data['data']['issue']['team']&.fetch('name', nil)
 project_name = ticket_data['data']['issue']['project']&.fetch('name', nil)
+labels = ticket_data['data']['issue']['labels']['nodes'].map { |l| l['name'] } rescue []
+is_bug = labels.any? { |l| l.downcase == 'bug' }
 
 print_step "Got ticket details:"
 puts "Title: #{title.green}"
@@ -156,38 +181,60 @@ puts "Description: #{truncate_words(description, 15).green}"
 puts "URL: #{url.yellow}"
 puts "Team: #{team_name.yellow}" if team_name
 puts "Project: #{project_name.yellow}" if project_name
+puts "Labels: #{labels.join(', ').yellow}" unless labels.empty?
 
 # Generate branch name using Goose
 print_step "Generating branch name using Goose..."
 
 instruction = <<~PROMPT
-Given this Linear ticket:
+=== TICKET DETAILS ===
 Title: #{title}
 Description: #{description}
-#{project_name ? "Project: #{project_name}" : ""}
-#{team_name ? "Team: #{team_name}" : ""}
+Project: #{project_name}
+Team: #{team_name}
+Labels: #{labels.join(', ')}
+=== END TICKET DETAILS ===
 
-Create a branch name following these rules:
-- Use kebab-case (lowercase words separated by hyphens)
-- Use 3-6 words to be descriptive yet concise
-- Remove any special characters
-- Focus on the core action/feature
-- Include relevant context from the project/team name if it adds clarity
-- Don't include ticket numbers or prefixes
-- Total length must be under 40 characters
+Based on the ticket details above, create a branch name following these guidelines:
 
-Examples of good branch names:
-- add-market-product-details
-- update-profile-payment-methods
-- fix-catalog-image-upload
-- enable-market-item-sheet-spos-kif-tests
+First, determine the appropriate prefix by analyzing the type of change:
 
-For context: Good branch names often include the project area (like 'market-item-sheet' or 'catalog')
-followed by the specific action or feature.
+1. NEW feature implementation (use 'create-' prefix):
+   - Adding UI elements or states that don't exist yet
+   - First-time implementation of functionality
+   - Adding new tests or coverage
+   - Keywords: "Display", "Show", "Add", "Implement"
+
+2. Bug fixes (use 'fix-' prefix):
+   - Has the 'bug' label
+   - Something is "broken", "not working", or "incorrect"
+   - Fixing crashes or errors
+   - Addressing existing problems
+   #{is_bug ? 'NOTE: This ticket has the "bug" label, suggesting it needs a fix-' : ''}
+
+3. Other changes:
+   - 'add-': Extending existing features
+   - 'update-': Improving existing features
+   - 'refactor-': Code cleanup
+
+Branch name rules:
+- Use kebab-case (lowercase with hyphens)
+- Use 3-6 words
+- Be descriptive yet concise
+- Include project context if relevant
+- Max length: 40 characters
+
+Examples:
+- create-error-state-for-combos
+- fix-catalog-image-upload-crash
+- add-validation-to-payments
+- create-market-item-sheet-tests
 
 Respond with ONLY a single line in this exact format (no other text):
 branch_name: your-branch-name-here
 PROMPT
+
+print_verbose "Sending prompt to Goose:\n#{instruction}"
 
 # Run goose with the developer extension
 output = `goose run --with-builtin developer -t #{Shellwords.escape(instruction)}`
