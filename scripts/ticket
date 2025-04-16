@@ -34,7 +34,7 @@ end
 def print_error(message, details = nil)
   puts "ERROR: #{message}".red
   if details
-    puts "\nFull response:".red
+    puts "\nDetails:".red
     puts details
   end
   exit 1
@@ -61,9 +61,25 @@ def extract_branch_name_from_output(output)
   end
 end
 
-# Validate arguments
+# Parse command line arguments
+require 'optparse'
+
+options = { dry_run: false }
+parser = OptionParser.new do |opts|
+  opts.banner = "Usage: ticket [options] <ticket-id> [module1 module2 ...]"
+  opts.on("-d", "--dry-run", "Generate branch name without executing commands") do
+    options[:dry_run] = true
+  end
+end
+
+begin
+  parser.parse!
+rescue OptionParser::InvalidOption => e
+  print_error e.message
+end
+
 if ARGV.empty?
-  print_error "Usage: ticket <ticket-id> [module1 module2 ...]"
+  print_error parser.help
 end
 
 ticket_id = ARGV[0]
@@ -82,14 +98,26 @@ print_step "Fetching ticket details for #{ticket_id}..."
 
 # GraphQL query for Linear
 query = {
-  query: '{
-    issue(id: "' + ticket_id + '") {
-      title
-      description
-      identifier
-      url
+  query: %{
+    query GetIssue($id: String!) {
+      issue(id: $id) {
+        title
+        description
+        identifier
+        url
+        team {
+          name
+          key
+        }
+        project {
+          name
+        }
+      }
     }
-  }'
+  },
+  variables: {
+    id: ticket_id
+  }
 }
 
 # Make request to Linear API
@@ -105,22 +133,29 @@ request.body = query.to_json
 response = http.request(request)
 
 unless response.is_a?(Net::HTTPSuccess)
-  print_error "Failed to fetch ticket details: #{response.code} #{response.message}"
+  error_details = "HTTP Status: #{response.code} #{response.message}\n"
+  error_details += "Response body: #{response.body}"
+  print_error "Failed to fetch ticket details", error_details
 end
 
 ticket_data = JSON.parse(response.body)
 if ticket_data['errors']
-  print_error "Linear API error: #{ticket_data['errors'][0]['message']}"
+  error_messages = ticket_data['errors'].map { |e| "- #{e['message']}" }.join("\n")
+  print_error "Linear API error", error_messages
 end
 
 title = ticket_data['data']['issue']['title']
 description = ticket_data['data']['issue']['description'] || ''
 url = ticket_data['data']['issue']['url']
+team_name = ticket_data['data']['issue']['team']&.fetch('name', nil)
+project_name = ticket_data['data']['issue']['project']&.fetch('name', nil)
 
 print_step "Got ticket details:"
 puts "Title: #{title.green}"
 puts "Description: #{truncate_words(description, 15).green}"
 puts "URL: #{url.yellow}"
+puts "Team: #{team_name.yellow}" if team_name
+puts "Project: #{project_name.yellow}" if project_name
 
 # Generate branch name using Goose
 print_step "Generating branch name using Goose..."
@@ -129,19 +164,26 @@ instruction = <<~PROMPT
 Given this Linear ticket:
 Title: #{title}
 Description: #{description}
+#{project_name ? "Project: #{project_name}" : ""}
+#{team_name ? "Team: #{team_name}" : ""}
 
 Create a branch name following these rules:
 - Use kebab-case (lowercase words separated by hyphens)
 - Use 3-6 words to be descriptive yet concise
 - Remove any special characters
 - Focus on the core action/feature
+- Include relevant context from the project/team name if it adds clarity
 - Don't include ticket numbers or prefixes
-- Total length must be under 50 characters
+- Total length must be under 40 characters
 
 Examples of good branch names:
-- add-market-product-details-section
+- add-market-product-details
 - update-profile-payment-methods
-- fix-catalog-image-upload-error
+- fix-catalog-image-upload
+- enable-market-item-sheet-spos-kif-tests
+
+For context: Good branch names often include the project area (like 'market-item-sheet' or 'catalog')
+followed by the specific action or feature.
 
 Respond with ONLY a single line in this exact format (no other text):
 branch_name: your-branch-name-here
@@ -162,6 +204,11 @@ branch_name = branch_name.downcase
 
 full_branch_name = "pg8wood/#{ticket_id}/#{branch_name}"
 print_step "Generated branch name: #{full_branch_name.green}"
+
+if options[:dry_run]
+  puts "\n#{" DRY RUN ".center(20, "=").yellow} Branch name generated but no commands executed."
+  exit 0
+end
 
 # Execute git commands
 print_step "Running reset-xcode-state..."
