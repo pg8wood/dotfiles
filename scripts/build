@@ -2,5 +2,37 @@
 
 # Strip out ".xcodeproj" extension to enable tab completion for this script in the ios-register repo
 module_name=${1%.xcodeproj}
+shift # Remove module name argument from the list of arguments
 
-./Scripts/BazelLocal/generate_xcode_project_with_bazel.rb $module_name -an $module_name
+# Capture any additional arguments passed after the module name
+additional_args="$@"
+
+# Run build script,  
+build_project() {
+    ./Scripts/BazelLocal/generate_xcode_project_with_bazel.rb "$module_name" -an "$module_name" $additional_args 2>&1 | tee /tmp/build_output.log
+}
+
+# Run the build function
+build_project
+
+# Check if the build output contains the gem/pod error
+if grep -qE "Could not find.*in locally installed gems" /tmp/build_output.log; then
+    echo "Detected missing gems. Running bundle install..."
+    bundle install
+
+    # Retry the build after installing gems
+    build_project
+
+    # Check again if it fails a second time
+    if grep -qE "Could not find.*in locally installed gems" /tmp/build_output.log; then
+        echo "Retry failed. Please check gem dependencies manually."
+        exit 1
+    else
+        echo "Build succeeded after installing missing gems."
+    fi
+else
+    echo "Build succeeded."
+fi
+
+# Cleanup temporary file
+rm /tmp/build_output.log

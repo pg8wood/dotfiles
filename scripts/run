@@ -1,9 +1,82 @@
-#!/bin/bash 
+#!/bin/bash
 
-if [ "$1" = "spos" ] || [ $# -lt 1 ]; then
-    tools/bazel run //Verticals/SPOS:SPOS-App --ios_simulator_device="iPad Pro (11-inch)"
-elif [ "$1" = "retail" ]; then
-    tools/bazel run //Verticals/Retail:Retail-App --ios_simulator_device="iPad Pro (11-inch)"
-else
-    tools/bazel run $1 --ios_simulator_device="iPad Pro (11-inch)"
+# Function to display usage information
+usage() {
+    echo "Usage: $0 [options] <module_name> <scheme>"
+    echo "Options:"
+    echo "  -d, --dry-run    Skip the build and run steps; test notifications only"
+    exit 1
+}
+
+# Initialize variables
+DRY_RUN=0
+
+# Parse options
+while [[ "$1" == -* ]]; do
+    case "$1" in
+        -d|--dry-run)
+            DRY_RUN=1
+            shift
+            ;;
+        *)
+            usage
+            ;;
+    esac
+done
+
+# Check if module_name and scheme are provided
+if [ $# -lt 2 ]; then
+    usage
 fi
+
+MODULE_NAME="$1"
+SCHEME="$2"
+
+# Check if PHONE_NUMBER is set
+if [ -z "$PHONE_NUMBER" ]; then
+    echo "Error: PHONE_NUMBER environment variable is not set."
+    echo "Please set PHONE_NUMBER to your phone number."
+    exit 1
+fi
+
+# Function to send a text message via iMessage using AppleScript
+send_text_message() {
+    local message="$1"
+    osascript <<EOF
+tell application "Messages"
+    set targetService to 1st service whose service type = iMessage
+    set targetBuddy to buddy "$PHONE_NUMBER" of targetService
+    send "$message" to targetBuddy
+end tell
+EOF
+}
+
+MESSAGE="Build and run process completed for module '$MODULE_NAME' and scheme '$SCHEME'."
+
+# Function to play a built-in macOS sound
+play_sound() {
+    # afplay /System/Library/Sounds/Glass.aiff
+    say "$MESSAGE"
+}
+
+# Main script logic
+if [ $DRY_RUN -eq 0 ]; then
+    echo "Building module: $MODULE_NAME"
+    build "$MODULE_NAME"  # 'build' is your personal alias
+
+    if [[ "$SCHEME" == *"test"* ]]; then
+        echo "Running tests for scheme: $SCHEME"
+        bundle exec bazel test "$SCHEME"
+    else
+        echo "Running scheme: $SCHEME"
+        bundle exec bazel run "$SCHEME"
+    fi
+else
+    echo "Dry run: Skipping build and run steps."
+fi
+
+# Send notification and play sound
+send_text_message "$MESSAGE"
+play_sound
+
+echo "Notification sent and sound played."

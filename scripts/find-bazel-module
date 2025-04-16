@@ -1,0 +1,128 @@
+#!/bin/bash
+
+# Usage: ./find_bazel_module.sh <ClassName>
+
+# Enable error handling
+set -e
+
+# Function to print messages in color
+print_pass() {
+    printf "\033[32m%s\033[0m\n" "$1"  # Green text
+}
+
+print_fail() {
+    printf "\033[31m%s\033[0m\n" "$1"  # Red text
+}
+
+print_info() {
+    printf "\033[34m%s\033[0m\n" "$1"  # Blue text
+}
+
+# Get the class name from the first argument
+CLASS_NAME=$1
+
+if [ -z "$CLASS_NAME" ]; then
+    print_fail "Usage: $0 <ClassNameWithoutExtension>"
+    exit 1
+fi
+
+print_info "Starting search for class: $CLASS_NAME"
+
+# Define the file extensions to search for
+EXTENSIONS=("*.swift" "*.m" "*.mm" "*.h")
+
+print_info "Looking for files with extensions: ${EXTENSIONS[*]}"
+
+# Find the file in the workspace
+FILE_PATH=""
+for EXT in "${EXTENSIONS[@]}"; do
+    print_info "Searching for: ${CLASS_NAME}${EXT:1}"
+    # Search for the file
+    FOUND_FILE=$(find . -name "${CLASS_NAME}${EXT:1}" -print -quit)
+    if [ -n "$FOUND_FILE" ]; then
+        FILE_PATH="$FOUND_FILE"
+        print_pass "Found file at: $FILE_PATH"
+        break
+    else
+        print_fail "File not found with extension $EXT"
+    fi
+done
+
+if [ -z "$FILE_PATH" ]; then
+    print_fail "Error: File for class $CLASS_NAME not found in the workspace."
+    exit 1
+fi
+
+# Walk up the directory hierarchy to find BUILD.bazel
+DIRECTORY=$(dirname "$FILE_PATH")
+BUILD_FILE=""
+while [ "$DIRECTORY" != "." ] && [ "$DIRECTORY" != "/" ]; do
+    if [ -f "$DIRECTORY/BUILD.bazel" ]; then
+        BUILD_FILE="$DIRECTORY/BUILD.bazel"
+        print_pass "Found BUILD.bazel at: $BUILD_FILE"
+        break
+    else
+        print_info "No BUILD.bazel found in $DIRECTORY, moving up..."
+        DIRECTORY=$(dirname "$DIRECTORY")
+    fi
+done
+
+if [ -z "$BUILD_FILE" ]; then
+    print_fail "Error: No BUILD.bazel file found in the directory hierarchy."
+    exit 1
+fi
+
+# Parse the BUILD.bazel file to extract target names
+print_info "Parsing BUILD.bazel to extract target names..."
+TARGET_NAMES=()
+
+# Read the BUILD.bazel file and extract target names
+while read -r line; do
+    if [[ $line =~ name\ *=\ *\"([^\"]+)\" ]]; then
+        TARGET_NAME="${BASH_REMATCH[1]}"
+        TARGET_NAMES+=("$TARGET_NAME")
+        print_info "Found target name: $TARGET_NAME"
+    fi
+done < "$BUILD_FILE"
+
+if [ ${#TARGET_NAMES[@]} -eq 0 ]; then
+    print_fail "Error: No target names found in BUILD.bazel."
+    exit 1
+fi
+
+# Construct the module name(s)
+print_info "Constructing module names..."
+
+# Get the relative path from the workspace root to the BUILD.bazel directory
+# Remove leading './' if present
+if [[ "$DIRECTORY" == "./"* ]]; then
+    BUILD_DIR_RELATIVE="${DIRECTORY:2}"
+else
+    BUILD_DIR_RELATIVE="$DIRECTORY"
+fi
+
+print_info "Relative path to BUILD.bazel: $BUILD_DIR_RELATIVE"
+
+# Ensure the path starts from 'Frameworks/' or adjust as needed
+# Remove any leading './'
+BUILD_DIR_RELATIVE="${BUILD_DIR_RELATIVE#./}"
+
+# Check if the BUILD.bazel is under 'Frameworks/' directory
+if [[ "$BUILD_DIR_RELATIVE" != Frameworks/* ]]; then
+    print_fail "Error: BUILD.bazel is not under the 'Frameworks/' directory."
+    exit 1
+fi
+
+# Construct module names
+MODULE_NAMES=()
+for TARGET in "${TARGET_NAMES[@]}"; do
+    MODULE_NAME="//${BUILD_DIR_RELATIVE}:$TARGET"
+    MODULE_NAMES+=("$MODULE_NAME")
+    print_pass "Constructed module name: $MODULE_NAME"
+done
+
+# Output the module names in a parseable manner
+print_info "Final module names:"
+for MODULE in "${MODULE_NAMES[@]}"; do
+    echo "$MODULE"
+done

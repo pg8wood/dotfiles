@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Note that any command prefixed with 'g' is from the GNU coreutils
 alias bootstrap='Scripts/bootstrap.sh'
 alias c='clear'
 #alias cp='cp -i'
+alias deps="be rlib auto-update-dependencies --git"
 alias docs='cd ~/Documents'
 alias drive='cd $GOOGLE_DRIVE'
-alias gut='git'
+alias gut='git' # I cannot type
 alias grep='grep --color'
 alias l='ls'
 alias ll='ls -l'

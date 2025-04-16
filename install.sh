@@ -90,6 +90,31 @@ brew install zsh-syntax-highlighting
 echo "Installing Pure Prompt"
 git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
 
+echo "Checking private zshrc config..."
+if [ ! -f "$HOME/.zshrc_private" ]; then
+    echo "Creating ~/.zshrc_private to store private environment variables."
+
+    # Create the file with appropriate permissions
+    touch "$HOME/.zshrc_private"
+    chmod 600 "$HOME/.zshrc_private"
+
+    # Add expected private environment variables to the file
+    cat <<EOL >> "$HOME/.zshrc_private"
+# Private environment variables
+
+# Replace with your actual phone number (including country code)
+export PHONE_NUMBER="+1234567890"
+
+# Add other private environment variables below
+# export ANOTHER_SECRET="value"
+EOL
+
+    echo "A template ~/.zshrc_private has been created."
+    echo "Please edit ~/.zshrc_private to set your private environment variables."
+else
+    echo "~/.zshrc_private already exists."
+fi
+
 # Install Playground
 cd ./third-party
 git clone https://github.com/JohnSundell/Playground.git

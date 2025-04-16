@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Easily ask GitHub Copilot CLI stuff
+
+# Join all arguments into a single string
+query="$*"
+
+# Call gh copilot suggest with the constructed string
+gh copilot suggest "$query"

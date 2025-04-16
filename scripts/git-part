@@ -1,16 +1,36 @@
 #!/bin/bash
-# Checks out a new branch off the current branch and appends 
-# the specified part number.
+# Checks out a new branch off the current branch and increments
+# the part number if it already exists, or appends the specified
+# part number if it does not.
 #
 # Helpful for breaking up tickets into sequential PRs
 # 
 # e.g. git part 2 => my-branch-part-2
+# e.g. git part   => my-branch-part-3 if currently on my-branch-part-2
 
 part_number=$1
+current_branch=$(git rev-parse --abbrev-ref HEAD)
 
-if [ -z "$1" ]; then 
-    echo "Supply a number for the branch, such as '2' to create '$(git rev-parse --abbrev-ref HEAD)-part-2'"
-    exit 1
+# Check if a part number was provided
+if [ -z "$part_number" ]; then 
+    # If no part number is provided, we will increment the existing part number
+    if [[ $current_branch =~ -part-([0-9]+)$ ]]; then
+        # Extract the existing part number and increment it
+        current_part_number=${BASH_REMATCH[1]}
+        new_part_number=$((current_part_number + 1))
+        # Replace the existing part number with the new one
+        new_branch_name="${current_branch%-part-*}-part-$new_part_number"
+    else
+        echo "No part number provided and current branch has no part number suffix."
+        exit 1
+    fi
+else
+    # If a part number is provided, append it or replace the existing part
+    if [[ $current_branch =~ -part-([0-9]+)$ ]]; then
+        new_branch_name="${current_branch%-part-*}-part-$part_number"
+    else
+        new_branch_name="$current_branch-part-$part_number"
+    fi
 fi
 
-git checkout -b "$(git rev-parse --abbrev-ref HEAD)-part-$part_number"
+git checkout -b "$new_branch_name"

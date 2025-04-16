@@ -1,0 +1,187 @@
+#!/usr/bin/env ruby
+require 'json'
+require 'net/http'
+require 'uri'
+require 'shellwords'
+
+# ANSI color codes for prettier output
+class String
+  def colorize(color_code)
+    "\e[#{color_code}m#{self}\e[0m"
+  end
+  
+  def blue
+    colorize(34)
+  end
+  
+  def green
+    colorize(32)
+  end
+  
+  def yellow
+    colorize(33)
+  end
+  
+  def red
+    colorize(31)
+  end
+end
+
+def print_step(message)
+  puts "==> #{message}".blue
+end
+
+def print_error(message, details = nil)
+  puts "ERROR: #{message}".red
+  if details
+    puts "\nFull response:".red
+    puts details
+  end
+  exit 1
+end
+
+# Truncate text to N words
+def truncate_words(text, word_count)
+  return "" if text.nil? || text.empty?
+  words = text.split
+  if words.length > word_count
+    words[0...word_count].join(" ") + "..."
+  else
+    text
+  end
+end
+
+# Extract branch name from goose output
+def extract_branch_name_from_output(output)
+  # Look for "branch_name: <name>" pattern
+  if match = output.match(/branch_name:\s*([a-z0-9-]+)/)
+    match[1]
+  else
+    print_error "Could not find branch name in Goose output", output
+  end
+end
+
+# Validate arguments
+if ARGV.empty?
+  print_error "Usage: ticket <ticket-id> [module1 module2 ...]"
+end
+
+ticket_id = ARGV[0]
+modules = ARGV[1..]
+
+# Validate ticket ID format (e.g., LCATINV-1478)
+unless ticket_id =~ /^[A-Z]+-\d+$/
+  print_error "Invalid ticket ID format. Expected format: PROJ-123"
+end
+
+# Get Linear API key
+api_key = ENV['LINEAR_API_KEY']
+print_error "LINEAR_API_KEY environment variable not set" unless api_key
+
+print_step "Fetching ticket details for #{ticket_id}..."
+
+# GraphQL query for Linear
+query = {
+  query: '{
+    issue(id: "' + ticket_id + '") {
+      title
+      description
+      identifier
+      url
+    }
+  }'
+}
+
+# Make request to Linear API
+uri = URI.parse('https://api.linear.app/graphql')
+http = Net::HTTP.new(uri.host, uri.port)
+http.use_ssl = true
+
+request = Net::HTTP::Post.new(uri.path)
+request['Content-Type'] = 'application/json'
+request['Authorization'] = api_key
+request.body = query.to_json
+
+response = http.request(request)
+
+unless response.is_a?(Net::HTTPSuccess)
+  print_error "Failed to fetch ticket details: #{response.code} #{response.message}"
+end
+
+ticket_data = JSON.parse(response.body)
+if ticket_data['errors']
+  print_error "Linear API error: #{ticket_data['errors'][0]['message']}"
+end
+
+title = ticket_data['data']['issue']['title']
+description = ticket_data['data']['issue']['description'] || ''
+url = ticket_data['data']['issue']['url']
+
+print_step "Got ticket details:"
+puts "Title: #{title.green}"
+puts "Description: #{truncate_words(description, 15).green}"
+puts "URL: #{url.yellow}"
+
+# Generate branch name using Goose
+print_step "Generating branch name using Goose..."
+
+instruction = <<~PROMPT
+Given this Linear ticket:
+Title: #{title}
+Description: #{description}
+
+Create a branch name following these rules:
+- Use kebab-case (lowercase words separated by hyphens)
+- Use 3-6 words to be descriptive yet concise
+- Remove any special characters
+- Focus on the core action/feature
+- Don't include ticket numbers or prefixes
+- Total length must be under 50 characters
+
+Examples of good branch names:
+- add-market-product-details-section
+- update-profile-payment-methods
+- fix-catalog-image-upload-error
+
+Respond with ONLY a single line in this exact format (no other text):
+branch_name: your-branch-name-here
+PROMPT
+
+# Run goose with the developer extension
+output = `goose run --with-builtin developer -t #{Shellwords.escape(instruction)}`
+branch_name = extract_branch_name_from_output(output)
+
+print_error "Failed to generate branch name using Goose - empty response", output if branch_name.nil? || branch_name.empty?
+
+# Clean up branch name just in case
+branch_name = branch_name.downcase
+                        .gsub(/[^a-z0-9\s-]/, '')
+                        .gsub(/\s+/, '-')
+                        .gsub(/-+/, '-')
+                        .gsub(/^-|-$/, '')
+
+full_branch_name = "pg8wood/#{ticket_id}/#{branch_name}"
+print_step "Generated branch name: #{full_branch_name.green}"
+
+# Execute git commands
+print_step "Running reset-xcode-state..."
+system('reset-xcode-state') or print_error "Failed to reset Xcode state"
+
+print_step "Fetching latest changes..."
+system('git fetch') or print_error "Failed to fetch"
+
+print_step "Checking out main branch..."
+system('git checkout origin/main') or print_error "Failed to checkout main"
+
+print_step "Creating new branch..."
+system("git checkout -b #{full_branch_name}") or print_error "Failed to create branch"
+
+# Build modules if specified
+if modules.any?
+  modules.each do |mod|
+    print_step "Building module: #{mod}..."
+    system("build #{mod}") or print_error "Failed to build #{mod}"
+  end
+end
+
+puts "\n✨ #{"All done!".green} Your environment is ready for #{ticket_id.yellow}"

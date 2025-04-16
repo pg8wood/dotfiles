@@ -24,6 +24,11 @@ plugins=(
   git
 )
 
+# Private RC for secrets 🤫
+if [ -f "$HOME/.zshrc_private" ]; then
+    source "$HOME/.zshrc_private"
+fi
+
 # Pure Prompt setup
 fpath+=$HOME/.zsh/pure # Apple Silicon workaround
 ZSH_THEME="" # empty theme is required for pure prompt: https://github.com/sindresorhus/pure#install
@@ -79,3 +84,4 @@ linter() {
   fi
 }
 
+export GPG_TTY=$(tty)

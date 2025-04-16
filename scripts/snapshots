@@ -1,0 +1,101 @@
+#!/bin/bash
+
+# Set colors for better output
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Helper function for status messages
+status() {
+    echo -e "${BLUE}==>${NC} $1"
+}
+
+debug() {
+    echo -e "${YELLOW}  ->${NC} $1"
+}
+
+success() {
+    echo -e "${GREEN}==>${NC} $1"
+}
+
+if [ $# -eq 0 ]; then
+    echo "Usage: snapshots <test_class_name>"
+    exit 1
+fi
+
+test_class="$1"
+status "Looking for test class: $test_class"
+
+# Find all Swift files containing the test class using ripgrep
+debug "Searching Swift files..."
+IFS=$'\n' read -r -d '' -a test_files < <(rg --type swift -l "$test_class" && printf '\0')
+
+if [ ${#test_files[@]} -eq 0 ]; then
+    echo "No test files found containing class '$test_class'"
+    exit 1
+fi
+
+if [ ${#test_files[@]} -gt 1 ]; then
+    echo "Multiple matching files found:"
+    printf "  %s\n" "${test_files[@]}"
+    echo -e "\nPlease be more specific with the test class name."
+    exit 1
+fi
+
+test_file="${test_files[0]}"
+success "Found test file: $test_file"
+
+current_dir=$(dirname "$test_file")
+build_file=""
+
+# Walk up to find BUILD.bazel
+status "Looking for BUILD.bazel file..."
+debug "Starting search from: $current_dir"
+while [ "$current_dir" != "." ]; do
+    if [ -f "$current_dir/BUILD.bazel" ]; then
+        build_file="$current_dir/BUILD.bazel"
+        break
+    fi
+    debug "Not found in $current_dir, moving up..."
+    current_dir=$(dirname "$current_dir")
+done
+
+if [ -z "$build_file" ]; then
+    echo "Could not find BUILD.bazel file for $test_file"
+    exit 1
+fi
+
+success "Found BUILD.bazel at: $build_file"
+
+# Find snapshot test target in BUILD.bazel
+status "Looking for snapshot test target in BUILD.bazel..."
+# First find the line with the SnapshotTests target
+snapshot_line=$(rg 'name\s*=\s*".*SnapshotTests"' "$build_file" | head -n1)
+# Then extract just the target name from between the quotes
+snapshot_target=$(echo "$snapshot_line" | rg -o '"([^"]*SnapshotTests)"' | tr -d '"')
+
+if [ -z "$snapshot_target" ]; then
+    echo "Could not find snapshot test target in $build_file"
+    exit 1
+fi
+
+success "Found snapshot target: $snapshot_target"
+
+# Construct the bazel target path
+relative_path=$(dirname "$build_file")
+bazel_target="//$relative_path:$snapshot_target"
+success "Constructed bazel target: $bazel_target"
+
+# Run the bazel command
+status "Running bazel test command..."
+echo -e "${YELLOW}Command:${NC} bazel test $bazel_target --test_filter=$test_class"
+echo "----------------------------------------------------------------"
+source .agentenv && bazel test "$bazel_target" --test_filter="$test_class"
+
+# Show final status based on bazel exit code
+if [ $? -eq 0 ]; then
+    success "Test execution completed successfully"
+else
+    echo -e "\n${YELLOW}Test execution completed with errors${NC}"
+fi

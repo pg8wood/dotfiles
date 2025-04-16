@@ -1,0 +1,9 @@
+#!/bin/bash 
+
+if [ "$1" = "spos" ] || [ $# -lt 1 ]; then
+    tools/bazel run //Verticals/SPOS:SPOS-App --ios_simulator_device="iPad Pro (11-inch)"
+elif [ "$1" = "retail" ]; then
+    tools/bazel run //Verticals/Retail:Retail-App --ios_simulator_device="iPad Pro (11-inch)"
+else
+    tools/bazel run $1 --ios_simulator_device="iPad Pro (11-inch)"
+fi
