@@ -19,8 +19,17 @@ success() {
     echo -e "${GREEN}==>${NC} $1"
 }
 
+# Parse arguments
+unit_mode=false
+while [[ "$1" == -* ]]; do
+    case "$1" in
+        -u|--unit) unit_mode=true; shift ;;
+        *) echo "Unknown option: $1"; exit 1 ;;
+    esac
+done
+
 if [ $# -eq 0 ]; then
-    echo "Usage: snapshots <test_class_name>"
+    echo "Usage: snapshots [-u|--unit] <test_class_name>"
     exit 1
 fi
 
@@ -68,23 +77,36 @@ fi
 
 success "Found BUILD.bazel at: $build_file"
 
-# Find snapshot test target in BUILD.bazel
-status "Looking for snapshot test target in BUILD.bazel..."
-# First find the line with the SnapshotTests target
-snapshot_line=$(rg 'name\s*=\s*".*SnapshotTests"' "$build_file" | head -n1)
-# Then extract just the target name from between the quotes
-snapshot_target=$(echo "$snapshot_line" | rg -o '"([^"]*SnapshotTests)"' | tr -d '"')
+relative_path=$(dirname "$build_file")
 
-if [ -z "$snapshot_target" ]; then
-    echo "Could not find snapshot test target in $build_file"
-    exit 1
+if [ "$unit_mode" = true ]; then
+    # Assume BUILD.bazel target name matches test_class or contains it
+    status "Looking for unit test target in BUILD.bazel..."
+    unit_line=$(rg 'name\s*=\s*".*Unit-Tests"' "$build_file" | head -n1)
+    unit_target=$(echo "$unit_line" | rg -o '"([^"]*)"' | tr -d '"')
+    if [ -z "$unit_target" ]; then
+        echo "Could not find unit test target in $build_file"
+        exit 1
+    fi
+    success "Found unit test target: $unit_target"
+    bazel_target="//$relative_path:$unit_target"
+else
+    # Find snapshot test target in BUILD.bazel
+    status "Looking for snapshot test target in BUILD.bazel..."
+    # First find the line with the SnapshotTests target
+    snapshot_line=$(rg 'name\s*=\s*".*SnapshotTests"' "$build_file" | head -n1)
+    # Then extract just the target name from between the quotes
+    snapshot_target=$(echo "$snapshot_line" | rg -o '"([^"]*SnapshotTests)"' | tr -d '"')
+
+    if [ -z "$snapshot_target" ]; then
+        echo "Could not find snapshot test target in $build_file"
+        exit 1
+    fi
+
+    success "Found snapshot target: $snapshot_target"
+    bazel_target="//$relative_path:$snapshot_target"
 fi
 
-success "Found snapshot target: $snapshot_target"
-
-# Construct the bazel target path
-relative_path=$(dirname "$build_file")
-bazel_target="//$relative_path:$snapshot_target"
 success "Constructed bazel target: $bazel_target"
 
 # Run the bazel command
