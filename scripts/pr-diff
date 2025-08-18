@@ -1,0 +1,132 @@
+#!/bin/bash
+
+# Script to open GitHub PR diff screen
+# Usage: ./open-github-pr-diff.sh
+
+set -e
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Function to print colored output
+print_info() {
+    echo -e "${GREEN}[INFO]${NC} $1"
+}
+
+print_warning() {
+    echo -e "${YELLOW}[WARNING]${NC} $1"
+}
+
+print_error() {
+    echo -e "${RED}[ERROR]${NC} $1"
+}
+
+# Check if we're in a git repository
+if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    print_error "Not in a git repository!"
+    exit 1
+fi
+
+# Get the repository root URL
+print_info "Getting repository information..."
+repo_url=$(git config --get remote.origin.url)
+
+if [ -z "$repo_url" ]; then
+    print_error "Could not find origin remote URL!"
+    exit 1
+fi
+
+# Convert SSH URL to HTTPS if needed
+if [[ $repo_url == git@github.com:* ]]; then
+    repo_url=${repo_url#git@github.com:}
+    repo_url="https://github.com/${repo_url}"
+elif [[ $repo_url == *@github.com:* ]]; then
+    # Handle SSH URLs with organization IDs like org-xxxxx@github.com:owner/repo
+    repo_url=$(echo "$repo_url" | sed 's/.*@github.com:/https:\/\/github.com\//')
+fi
+
+# Remove .git suffix if present
+repo_url=${repo_url%.git}
+
+print_info "Repository URL: $repo_url"
+
+# Get current branch name
+current_branch=$(git branch --show-current)
+
+if [ -z "$current_branch" ]; then
+    print_error "Could not determine current branch!"
+    exit 1
+fi
+
+print_info "Current branch: $current_branch"
+
+# Determine the main branch (try main first, then master, then default)
+print_info "Determining main branch..."
+
+# First, try to get the default branch from remote
+default_branch=""
+
+# Try to get default branch from remote HEAD
+if git symbolic-ref refs/remotes/origin/HEAD > /dev/null 2>&1; then
+    default_branch=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+    print_info "Found default branch from remote HEAD: $default_branch"
+elif git show-ref --verify --quiet refs/remotes/origin/main; then
+    default_branch="main"
+    print_info "Found 'main' branch"
+elif git show-ref --verify --quiet refs/remotes/origin/master; then
+    default_branch="master"
+    print_info "Found 'master' branch"
+else
+    # Fallback: try to determine from local branches
+    if git show-ref --verify --quiet refs/heads/main; then
+        default_branch="main"
+        print_warning "Using local 'main' branch (remote not found)"
+    elif git show-ref --verify --quiet refs/heads/master; then
+        default_branch="master"
+        print_warning "Using local 'master' branch (remote not found)"
+    else
+        print_error "Could not determine main/master branch!"
+        print_error "Available remote branches:"
+        git branch -r
+        exit 1
+    fi
+fi
+
+print_info "Main branch: $default_branch"
+
+# Check if current branch is the same as main branch
+if [ "$current_branch" = "$default_branch" ]; then
+    print_warning "You are currently on the main branch ($default_branch)"
+    print_warning "This will show an empty diff. Continue? (y/N)"
+    read -r response
+    if [[ ! $response =~ ^[Yy]$ ]]; then
+        print_info "Aborted."
+        exit 0
+    fi
+fi
+
+# Construct the GitHub compare URL
+compare_url="${repo_url}/compare/${default_branch}...${current_branch}"
+
+print_info "Opening GitHub PR diff: $compare_url"
+
+# Open the URL in the default browser
+if command -v open > /dev/null 2>&1; then
+    # macOS
+    open "$compare_url"
+elif command -v xdg-open > /dev/null 2>&1; then
+    # Linux
+    xdg-open "$compare_url"
+elif command -v start > /dev/null 2>&1; then
+    # Windows
+    start "$compare_url"
+else
+    print_error "Could not determine how to open URL on this system"
+    print_info "Please manually open: $compare_url"
+    exit 1
+fi
+
+print_info "Done!"
