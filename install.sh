@@ -58,8 +58,7 @@ then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 fi
 
-install_brew npm
-npm install --global pure-prompt
+brew install pure
 
 linkdotfile .aliasrc
 linkdotfile .bashrc
