@@ -7,9 +7,9 @@ shift # Remove module name argument from the list of arguments
 # Capture any additional arguments passed after the module name
 additional_args="$@"
 
-# Run build script,  
+# Run build script,
 build_project() {
-    ./Scripts/BazelLocal/generate_xcode_project_with_bazel.rb "$module_name" -an "$module_name" $additional_args 2>&1 | tee /tmp/build_output.log
+    sq gen "$module_name" -a -n "$module_name" $additional_args 2>&1 | tee /tmp/build_output.log
 }
 
 # Run the build function
@@ -33,6 +33,23 @@ if grep -qE "Could not find.*in locally installed gems" /tmp/build_output.log; t
 else
     echo "Build succeeded."
 fi
+
+# 3. Trigger Run in Xcode once indexing is ready
+echo -e "\nWaiting for Xcode indexing to finish so we can Run..."
+
+osascript <<'END'
+tell application "System Events"
+    tell process "Xcode"
+        -- Wait until the Run menu item is enabled
+        repeat until (enabled of menu item "Run" of menu "Product" of menu bar 1) is true
+            delay 1
+        end repeat
+        click menu item "Run" of menu "Product" of menu bar 1
+    end tell
+end tell
+END
+
+echo "Run triggered in Xcode 🚀"
 
 # Cleanup temporary file
 rm /tmp/build_output.log
