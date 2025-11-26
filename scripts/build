@@ -7,35 +7,45 @@ shift # Remove module name argument from the list of arguments
 # Capture any additional arguments passed after the module name
 additional_args="$@"
 
-# Run build script,
-build_project() {
-    sq gen "$module_name" -a -n "$module_name" $additional_args 
+# Print function with purple [superbuild] prefix
+superbuild_echo() {
+    local purple="\033[38;2;84;72;200m"
+    local reset="\033[0m"
+    echo -e "${purple}[superbuild]${reset} $*"
 }
 
-# Run the build function
-build_project
+# Print error function with red [superbuild] prefix
+superbuild_error() {
+    local red="\033[38;2;255;0;0m"
+    local reset="\033[0m"
+    echo -e "${red}[superbuild]${reset} $*"
+}
 
-# Check if the build output contains the gem/pod error
-if grep -qE "Could not find.*in locally installed gems" /tmp/build_output.log; then
-    echo "Detected missing gems. Running bundle install..."
-    bundle install
+# Print success function with green [superbuild] prefix
+superbuild_success() {
+    local green="\033[38;2;0;255;0m"
+    local reset="\033[0m"
+    echo -e "${green}[superbuild]${reset} $*"
+}
 
-    # Retry the build after installing gems
-    build_project
+# Show starting message
+superbuild_echo "Generating $module_name..."
 
-    # Check again if it fails a second time
-    if grep -qE "Could not find.*in locally installed gems" /tmp/build_output.log; then
-        echo "Retry failed. Please check gem dependencies manually."
-        exit 1
-    else
-        echo "Build succeeded after installing missing gems."
-    fi
-else
-    echo "Build succeeded."
+# Run build script
+sq gen "$module_name" -a -n "$module_name" $additional_args 2>&1
+build_exit_code=$?
+
+# Check if the build succeeded
+if [ $build_exit_code -ne 0 ]; then
+    superbuild_error "❌ Build failed with exit code $build_exit_code"
+    exit 1
 fi
 
+superbuild_success "✓ Build succeeded."
+
 # 3. Trigger Run in Xcode once indexing is ready
-echo -e "\nWaiting for Xcode indexing to finish so we can Run..."
+superbuild_echo ""
+superbuild_echo "Waiting for Xcode indexing to finish so we can Run..."
 
 trigger_xcode_run() {
     osascript <<'END' 2>&1
@@ -87,23 +97,20 @@ while [ $retry_count -lt $max_retries ]; do
     exit_code=$?
     
     if [ $exit_code -eq 0 ]; then
-        echo "Run triggered in Xcode 🚀"
+        superbuild_success "Run triggered in Xcode 🚀"
         break
     else
         retry_count=$((retry_count + 1))
-        echo "⚠️  Attempt $retry_count failed with error:"
+        superbuild_echo "⚠️  Attempt $retry_count failed with error:"
         echo "$output"
         
         if [ $retry_count -lt $max_retries ]; then
-            echo "Retrying in ${retry_delay}s..."
+            superbuild_echo "Retrying in ${retry_delay}s..."
             sleep $retry_delay
             retry_delay=$((retry_delay * 2))  # Exponential backoff
         else
-            echo "❌ Failed to trigger Run after $max_retries attempts."
-            echo "You may need to manually click Run in Xcode."
+            superbuild_error "❌ Failed to trigger Run after $max_retries attempts."
+            superbuild_error "You may need to manually click Run in Xcode."
         fi
     fi
 done
-
-# Cleanup temporary file
-rm /tmp/build_output.log
