@@ -9,7 +9,7 @@ additional_args="$@"
 
 # Run build script,
 build_project() {
-    sq gen "$module_name" -a -n "$module_name" $additional_args 2>&1 | tee /tmp/build_output.log
+    sq gen "$module_name" -a -n "$module_name" $additional_args 
 }
 
 # Run the build function
@@ -37,19 +37,73 @@ fi
 # 3. Trigger Run in Xcode once indexing is ready
 echo -e "\nWaiting for Xcode indexing to finish so we can Run..."
 
-osascript <<'END'
+trigger_xcode_run() {
+    osascript <<'END' 2>&1
+log "→ Activating Xcode..."
+tell application "Xcode"
+    activate
+end tell
+
+log "→ Waiting for Xcode UI to be ready..."
+delay 0.5
+
 tell application "System Events"
     tell process "Xcode"
+        log "→ Checking for Run menu item availability..."
+        
         -- Wait until the Run menu item is enabled
-        repeat until (enabled of menu item "Run" of menu "Product" of menu bar 1) is true
+        set checkCount to 0
+        repeat
+            try
+                if (enabled of menu item "Run" of menu "Product" of menu bar item "Product" of menu bar 1) is true then
+                    log "✓ Run menu item is ready!"
+                    exit repeat
+                end if
+            end try
+            
+            set checkCount to checkCount + 1
+            if checkCount mod 5 = 0 then
+                log "  Still waiting for indexing... (" & checkCount & "s elapsed)"
+            end if
+            
             delay 1
         end repeat
-        click menu item "Run" of menu "Product" of menu bar 1
+        
+        log "→ Clicking Run menu item..."
+        click menu item "Run" of menu "Product" of menu bar item "Product" of menu bar 1
+        log "✓ Run command sent successfully!"
     end tell
 end tell
 END
+}
 
-echo "Run triggered in Xcode 🚀"
+# Retry logic with exponential backoff
+max_retries=3
+retry_count=0
+retry_delay=2
+
+while [ $retry_count -lt $max_retries ]; do
+    output=$(trigger_xcode_run)
+    exit_code=$?
+    
+    if [ $exit_code -eq 0 ]; then
+        echo "Run triggered in Xcode 🚀"
+        break
+    else
+        retry_count=$((retry_count + 1))
+        echo "⚠️  Attempt $retry_count failed with error:"
+        echo "$output"
+        
+        if [ $retry_count -lt $max_retries ]; then
+            echo "Retrying in ${retry_delay}s..."
+            sleep $retry_delay
+            retry_delay=$((retry_delay * 2))  # Exponential backoff
+        else
+            echo "❌ Failed to trigger Run after $max_retries attempts."
+            echo "You may need to manually click Run in Xcode."
+        fi
+    fi
+done
 
 # Cleanup temporary file
 rm /tmp/build_output.log
