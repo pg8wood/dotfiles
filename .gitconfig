@@ -1,15 +1,10 @@
 [user]
 	name = Patrick Gatewood
         email = patrick@patrickgatewood.com
-	signingkey = 625091F5CA4BCC0C
+	signingkey = CAC0211ED8AB2F41
 [core]
-	excludesfile = /Users/PatrickGatewood/.gitignore_global
+	excludesfile = ~/.gitignore_global
         hookspath = ~/Developer/dotfiles/git/hooks
-[filter "lfs"]
-	smudge = git-lfs smudge -- %f
-	process = git-lfs filter-process
-	required = true
-	clean = git-lfs clean -- %f
 [difftool "sourcetree"]
 	cmd = opendiff \"$LOCAL\" \"$REMOTE\"
 	path = 
@@ -28,3 +23,8 @@
 	defaultBranch = main
 [gpg]
 	program = gpg
+[filter "lfs"]
+	clean = git-lfs clean -- %f
+	smudge = git-lfs smudge -- %f
+	process = git-lfs filter-process
+	required = true

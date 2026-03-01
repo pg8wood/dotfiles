@@ -12,7 +12,7 @@ export PATH="$HOME/.fastlane/bin:$PATH"
 export ANDROID_HOME="$HOME/Library/Android/sdk"
 
 # oh-my-zsh 
-export ZSH="/Users/patrickgatewood/.oh-my-zsh"
+export ZSH="$HOME/.oh-my-zsh"
 
 # zsh config
 HYPHEN_INSENSITIVE="true"
@@ -30,7 +30,7 @@ if [ -f "$HOME/.zshrc_private" ]; then
 fi
 
 # Pure Prompt setup
-fpath+=$HOME/.zsh/pure # Apple Silicon workaround
+fpath+=("$(brew --prefix)/share/zsh/site-functions")
 ZSH_THEME="" # empty theme is required for pure prompt: https://github.com/sindresorhus/pure#install
 autoload -U promptinit; promptinit
 prompt pure
@@ -49,8 +49,7 @@ bindkey "^R" history-incremental-search-backward
 # -----------------
 
 # GPG Commit Signing
-if [ -r ~/.zshrc ]; then echo 'export GPG_TTY=$(tty)' >> ~/.zshrc; \
-  else echo 'export GPG_TTY=$(tty)' >> ~/.zprofile; fi
+export GPG_TTY=$(tty)
 
 # Get rid of Xamarin UI Tests incoming connection alerts
 simfirewall() {
@@ -69,9 +68,6 @@ export PATH=$HOME/.dotnet/tools:$PATH
 export PATH="$PATH:/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
 
 source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-export GPG_TTY=$(tty)
-export GPG_TTY=$(tty)
-
 
 # Linter shenanigans
 linter() {
@@ -84,4 +80,16 @@ linter() {
   fi
 }
 
-export GPG_TTY=$(tty)
+# Added by LM Studio CLI (lms)
+export PATH="$PATH:$HOME/.lmstudio/bin"
+
+# taipo command-not-found hook
+if [ -f "$HOME/.taipo/command_not_found_handler.zsh" ]; then
+    source "$HOME/.taipo/command_not_found_handler.zsh"
+fi
+
+# Added by Antigravity
+export PATH="$HOME/.antigravity/antigravity/bin:$PATH"
+
+# AI Maestro PATH (added by installer)
+export PATH="$HOME/.local/bin:$PATH"
