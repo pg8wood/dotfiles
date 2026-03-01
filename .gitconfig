@@ -1,7 +1,5 @@
-[user]
-	name = Patrick Gatewood
-        email = patrick@patrickgatewood.com
-	signingkey = CAC0211ED8AB2F41
+[include]
+	path = ~/.gitconfig_private
 [core]
 	excludesfile = ~/.gitignore_global
         hookspath = ~/Developer/dotfiles/git/hooks
@@ -15,8 +13,6 @@
 	enabled = true
 [push]
 	default = current
-[commit]
-	gpgsign = true
 [credential]
 	helper = osxkeychain
 [init]

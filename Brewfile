@@ -1,4 +1,5 @@
 # CLI tools
+brew "gh"
 brew "zsh-syntax-highlighting"
 brew "pure"
 brew "git-lfs"
