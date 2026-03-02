@@ -214,8 +214,11 @@ else
 
   if ask "Install Oh My Zsh?" Y; then
     step_info "Installing Oh My Zsh..."
-    sh -c "$(curl -fsSL $ohMyZshUrl)"
-    step_pass "Oh My Zsh installed"
+    if RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL "$ohMyZshUrl")" "" --unattended; then
+      step_pass "Oh My Zsh installed"
+    else
+      step_fail "Oh My Zsh install failed"
+    fi
   else
     step_skip "Oh My Zsh (declined)"
   fi
