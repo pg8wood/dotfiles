@@ -61,17 +61,17 @@ phase() {
 
 step_pass() {
   echo "  ${Gre}✓${RCol} $1"
-  ((PASS_COUNT++))
+  PASS_COUNT=$((PASS_COUNT + 1))
 }
 
 step_fail() {
   echo "  ${Red}✗${RCol} $1"
-  ((FAIL_COUNT++))
+  FAIL_COUNT=$((FAIL_COUNT + 1))
 }
 
 step_skip() {
   echo "  ${Dim}⊘ $1 (skipped)${RCol}"
-  ((SKIP_COUNT++))
+  SKIP_COUNT=$((SKIP_COUNT + 1))
 }
 
 step_info() {
